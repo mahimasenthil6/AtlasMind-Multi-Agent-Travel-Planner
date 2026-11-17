@@ -1,3 +1,4 @@
 from tools.tavily_tool import tavily_search
-res=tavily_search("Best places to visit in Europe")
+from tools.flight_tool import search_flights
+res=search_flights("Plan a 7 days Japan trip from Chennai to Tokyo ")
 print(res)
