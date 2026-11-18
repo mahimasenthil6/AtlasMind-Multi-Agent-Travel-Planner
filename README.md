@@ -6,12 +6,14 @@ An open-source AI travel planner that turns a natural-language trip request into
 ## 📸 Preview
 
 ### Travel Request & Interface
-![AtlasMind Interface]
+AtlasMind Interface
 <img width="1511" height="860" alt="Screenshot 2026-11-18 at 11 34 36 PM" src="https://github.com/user-attachments/assets/3e1359c4-16d3-43d8-a4cd-713e1f8177c7" />
 
 ### Multi-Agent Itinerary Output
-![AtlasMind Generated Itinerary]
-![Uploading Screenshot 2026-11-18 at 11.35.57 PM.png…]()
+AtlasMind Generated Itinerary
+<img width="1512" height="865" alt="Screenshot 2026-11-18 at 11 38 36 PM" src="https://github.com/user-attachments/assets/ffe55e48-d391-4e35-8c74-e75744b2156f" />
+
+
 
 
 ## Why this project?
