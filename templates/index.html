@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AtlasMind — Enterprise Multi-Agent Travel Intelligence</title>
+  <meta name="description" content="Autonomous multi-agent travel planning system powered by LangGraph, AviationStack, Tavily, and Groq.">
+  
+  <!-- Favicon / Web Icon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><path d='m4.93 4.93 4.24 4.24'/><path d='m14.83 9.17 4.24-4.24'/><path d='m14.83 14.83 4.24 4.24'/><path d='m9.17 14.83-4.24 4.24'/><circle cx='12' cy='12' r='4'/></svg>">
+  
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Markdown & Sanitizer Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+
+  <!-- Application Stylesheet -->
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <!-- Ambient background glow elements -->
+  <div class="ambient-glow glow-1" aria-hidden="true"></div>
+  <div class="ambient-glow glow-2" aria-hidden="true"></div>
+
+  <!-- Header / Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="nav-brand">
+        <div class="brand-symbol">
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polygon points="12 2 15 8.5 22 9.2 17 14 18.5 21 12 17.5 5.5 21 7 14 2 9.2 9 8.5 12 2"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title-wrap">
+            <h1 class="brand-title">AtlasMind</h1>
+            <span class="brand-badge">ENTERPRISE</span>
+          </div>
+          <span class="brand-tagline">Multi-Agent Travel Intelligence</span>
+        </div>
+      </div>
+
+      <div class="nav-center-status">
+        <div class="status-indicator-pill" id="system-status-pill">
+          <span class="status-dot"></span>
+          <span class="status-label" id="system-status-text">Connecting...</span>
+        </div>
+        <div class="agent-count-pill">
+          <span class="agent-count-val">4</span> Agents Armed
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <!-- Active session thread indicator -->
+        <div class="thread-badge" id="active-thread-badge" style="display: none;" title="Current Thread Session">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span id="active-thread-id-text">Session ID</span>
+          <button class="thread-copy-btn" id="copy-thread-btn" title="Copy Thread ID">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+        </div>
+
+        <!-- Saved Trips Button -->
+        <button class="btn-icon" id="history-toggle-btn" title="Trip History" aria-label="Trip History">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <span class="history-badge" id="history-count">0</span>
+        </button>
+
+        <!-- Theme Toggle -->
+        <button class="btn-icon" id="theme-toggle-btn" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+          <svg class="sun-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg class="moon-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+
+        <!-- New Trip Button -->
+        <button class="btn-secondary btn-sm" id="new-trip-btn">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>New Trip</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="main-content">
+    <div class="content-wrapper">
+
+      <!-- Hero Section -->
+      <section class="hero-section" id="hero-section">
+        <div class="hero-meta-pill">
+          <span class="meta-sparkle">✦</span>
+          <span>LANGGRAPH STATEFUL MULTI-AGENT ARCHITECTURE</span>
+          <span class="meta-dot">•</span>
+          <span class="meta-tools">AVIATIONSTACK + TAVILY + GROQ</span>
+        </div>
+        <h2 class="hero-title">
+          Orchestrate World-Class Travel with <span class="gradient-text">Autonomous AI Agents</span>
+        </h2>
+        <p class="hero-description">
+          Deploy coordinated Flight, Hotel, Itinerary, and Executive Synthesis agents in parallel. Real-time aviation routes, curated accommodations, day-by-day scheduling, and budget calculations in one unified dossier.
+        </p>
+
+        <!-- Quick Inspiration Pills -->
+        <div class="preset-prompts-container">
+          <span class="preset-label">Quick Launch:</span>
+          <div class="preset-prompts">
+            <button class="preset-pill" data-query="Plan a 7-day luxury cherry blossom trip to Tokyo and Kyoto from Chennai with boutique hotels and Michelin-star dining">
+              <span class="preset-flag">🌸</span> Tokyo & Kyoto 7-Day Luxury
+            </button>
+            <button class="preset-pill" data-query="Plan a 5-day romantic and cultural trip to Paris from New York with boutique hotels near Le Marais and museum passes under $3,000">
+              <span class="preset-flag">🥐</span> Paris 5-Day Art & Romance
+            </button>
+            <button class="preset-pill" data-query="Plan a 6-day wellness and private villa retreat in Bali from Singapore with infinity pools, yoga, and scenic beaches under $2,200">
+              <span class="preset-flag">🏖️</span> Bali 6-Day Wellness Retreat
+            </button>
+            <button class="preset-pill" data-query="Plan a 7-day scenic rail journey across the Swiss Alps (Zurich, Lucerne, Zermatt) from London with 4-star mountain view hotels">
+              <span class="preset-flag">🏔️</span> Swiss Alps 7-Day Scenic Rail
+            </button>
+            <button class="preset-pill" data-query="Plan a 4-day gastronomy and architecture tour in New York City from Chicago with boutique hotels in SoHo">
+              <span class="preset-flag">🗽</span> NYC 4-Day Culture & Dining
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Planning Command Center -->
+      <section class="planner-card">
+        <div class="planner-tabs-bar">
+          <button class="planner-mode-btn active" id="mode-nl-btn" data-target="mode-nl">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>Natural Language Planning</span>
+          </button>
+          <button class="planner-mode-btn" id="mode-structured-btn" data-target="mode-structured">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <span>Structured Trip Builder</span>
+          </button>
+        </div>
+
+        <!-- Mode 1: Natural Language Console -->
+        <div class="planner-panel active" id="mode-nl-panel">
+          <div class="input-glow-wrapper">
+            <textarea 
+              id="travel-query-input" 
+              class="travel-query-textarea" 
+              rows="3" 
+              placeholder="e.g. Plan a 7-day trip to Tokyo from Chennai with 4-star hotels, cultural sights, authentic culinary spots, and estimated budget under $2,500..."
+              aria-label="Travel Planning Query"
+            ></textarea>
+
+            <div class="query-modifiers-bar">
+              <span class="modifiers-label">Add Requirements:</span>
+              <div class="modifier-chips">
+                <button class="mod-chip" data-append="with 4-star boutique hotel recommendations">+ Boutique Stays</button>
+                <button class="mod-chip" data-append="including local culinary hotspots and Michelin-starred dining">+ Fine Dining</button>
+                <button class="mod-chip" data-append="prioritizing public transit and high-speed rail passes">+ Bullet Trains / Transit</button>
+                <button class="mod-chip" data-append="with budget-friendly options and free cultural attractions">+ Budget Friendly</button>
+                <button class="mod-chip" data-append="family-friendly with kid-friendly activities">+ Family Friendly</button>
+                <button class="mod-chip" data-append="focusing on hidden gems and scenic photography spots">+ Hidden Gems</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mode 2: Structured Trip Builder -->
+        <div class="planner-panel" id="mode-structured-panel" style="display: none;">
+          <div class="builder-grid">
+            <div class="builder-field">
+              <label for="builder-origin">Origin City or Airport</label>
+              <div class="input-icon-group">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.3c.4-.2.6-.6.5-1.1z"/></svg>
+                <input type="text" id="builder-origin" placeholder="e.g. Chennai, MAA, London, New York" value="Chennai">
+              </div>
+            </div>
+
+            <div class="builder-field">
+              <label for="builder-dest">Destination</label>
+              <div class="input-icon-group">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <input type="text" id="builder-dest" placeholder="e.g. Tokyo, Paris, Bali, Rome, Dubai">
+              </div>
+            </div>
+
+            <div class="builder-field">
+              <label for="builder-duration">Duration</label>
+              <div class="input-icon-group">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <select id="builder-duration">
+                  <option value="3 days">3 Days (Weekend Express)</option>
+                  <option value="5 days">5 Days (Discovery Break)</option>
+                  <option value="7 days" selected>7 Days (Full Itinerary)</option>
+                  <option value="10 days">10 Days (Comprehensive Tour)</option>
+                  <option value="14 days">14 Days (Grand Voyage)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="builder-field">
+              <label for="builder-style">Travel Style & Stays</label>
+              <div class="input-icon-group">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <select id="builder-style">
+                  <option value="luxury boutique hotels and fine dining">Luxury & Boutique Stays</option>
+                  <option value="balanced 4-star hotels with cultural exploration" selected>Balanced Explorer (4-Star)</option>
+                  <option value="budget-friendly authentic stays and local street food">Budget Smart & Backpacking</option>
+                  <option value="romantic private villas and scenic sunsets">Romantic Escape</option>
+                  <option value="family-friendly accommodations with relaxed pacing">Family Friendly</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="builder-field builder-field-full">
+              <label for="builder-budget">Estimated Budget / Special Preferences</label>
+              <div class="input-icon-group">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <input type="text" id="builder-budget" placeholder="e.g. Budget under $3,000 for 2 adults, prefer vegetarian options">
+              </div>
+            </div>
+          </div>
+
+          <div class="builder-actions-row">
+            <button class="btn-secondary btn-sm" id="apply-builder-to-prompt-btn">
+              Apply to Prompt Box
+            </button>
+          </div>
+        </div>
+
+        <!-- Command Execution Bar -->
+        <div class="planner-footer">
+          <div class="keyboard-tip">
+            <kbd>⌘</kbd> + <kbd>Return</kbd> <span class="tip-text">or <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to launch agent swarm</span>
+          </div>
+
+          <div class="execution-actions">
+            <button class="btn-ghost" id="clear-query-btn">
+              <span>Clear</span>
+            </button>
+            <button class="btn-primary" id="launch-agent-btn">
+              <span class="btn-shine"></span>
+              <svg class="btn-icon-svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.3c.4-.2.6-.6.5-1.1z"/>
+              </svg>
+              <span id="launch-btn-label">Launch Agent Swarm</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Multi-Agent Orchestrator Live Visualizer -->
+      <section class="orchestration-card" id="orchestrator-card" style="display: none;">
+        <div class="orchestrator-header">
+          <div class="orch-title-group">
+            <div class="radar-pulse"></div>
+            <div>
+              <h3 class="orch-title">LangGraph Agent Pipeline Active</h3>
+              <p class="orch-subtitle" id="orch-status-message">Orchestrating autonomous agents across live travel APIs...</p>
+            </div>
+          </div>
+          <div class="orch-timer" id="orch-timer-display">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span id="orch-elapsed-time">00:00</span>
+          </div>
+        </div>
+
+        <!-- Linear Progress Bar -->
+        <div class="orch-progress-track">
+          <div class="orch-progress-fill" id="orch-progress-bar"></div>
+        </div>
+
+        <!-- Interactive 4-Agent Pipeline Nodes -->
+        <div class="agent-nodes-grid">
+          <!-- Node 1: Flight Agent -->
+          <div class="agent-node" id="agent-node-flight" data-agent="flight">
+            <div class="node-icon-wrap">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.3c.4-.2.6-.6.5-1.1z"/></svg>
+              <span class="node-status-badge pending">Pending</span>
+            </div>
+            <div class="node-info">
+              <span class="node-name">Flight Agent</span>
+              <span class="node-role">AviationStack Radar & Route Resolver</span>
+            </div>
+          </div>
+
+          <!-- Node 2: Hotel Agent -->
+          <div class="agent-node" id="agent-node-hotel" data-agent="hotel">
+            <div class="node-icon-wrap">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              <span class="node-status-badge pending">Pending</span>
+            </div>
+            <div class="node-info">
+              <span class="node-name">Hotel Agent</span>
+              <span class="node-role">Tavily Web Search & Stay Curator</span>
+            </div>
+          </div>
+
+          <!-- Node 3: Itinerary Agent -->
+          <div class="agent-node" id="agent-node-itinerary" data-agent="itinerary">
+            <div class="node-icon-wrap">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+              <span class="node-status-badge pending">Pending</span>
+            </div>
+            <div class="node-info">
+              <span class="node-name">Itinerary Agent</span>
+              <span class="node-role">LangGraph Chronological Synthesizer</span>
+            </div>
+          </div>
+
+          <!-- Node 4: Final Dossier Agent -->
+          <div class="agent-node" id="agent-node-final" data-agent="final">
+            <div class="node-icon-wrap">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <span class="node-status-badge pending">Pending</span>
+            </div>
+            <div class="node-info">
+              <span class="node-name">Executive Dossier Agent</span>
+              <span class="node-role">Budget Formulation & Final Audit</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Terminal log ticker -->
+        <div class="orch-log-box">
+          <div class="log-indicator">LOGS:</div>
+          <div class="log-ticker" id="orch-log-ticker">Initializing multi-agent graph environment...</div>
+        </div>
+      </section>
+
+      <!-- Results Dashboard Section -->
+      <section class="results-dashboard" id="results-dashboard" style="display: none;">
+        <!-- Top Dossier Meta Bar -->
+        <div class="dossier-hero-bar">
+          <div class="dossier-title-area">
+            <div class="dossier-badge-row">
+              <span class="badge-success">CONFIRMED PLAN</span>
+              <span class="badge-tag" id="dossier-route-tag">Global Route</span>
+              <span class="badge-tag" id="dossier-time-tag">Just now</span>
+            </div>
+            <h3 class="dossier-main-title" id="dossier-headline">Curated Travel Intelligence Dossier</h3>
+          </div>
+
+          <div class="dossier-metrics-group">
+            <div class="metric-card">
+              <span class="metric-label">LLM Calls</span>
+              <span class="metric-value" id="metric-llm-calls">0</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Thread Session</span>
+              <span class="metric-value font-mono" id="metric-thread-id" title="Click to copy">Ready</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Engine Latency</span>
+              <span class="metric-value" id="metric-latency">0.0s</span>
+            </div>
+          </div>
+
+          <div class="dossier-action-bar">
+            <button class="btn-action" id="action-print-btn" title="Print or Export as PDF">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              <span>Export PDF</span>
+            </button>
+            <button class="btn-action" id="action-copy-btn" title="Copy Complete Plan to Clipboard">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copy Markdown</span>
+            </button>
+            <button class="btn-action" id="action-download-json-btn" title="Download Machine-Readable JSON">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>JSON</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Dashboard View Tabs -->
+        <div class="dashboard-tabs">
+          <button class="dash-tab-btn active" data-tab="tab-executive">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span>Executive Dossier</span>
+          </button>
+          <button class="dash-tab-btn" data-tab="tab-flights">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.3c.4-.2.6-.6.5-1.1z"/></svg>
+            <span>Flights Radar</span>
+            <span class="tab-chip" id="flights-chip-count">Live</span>
+          </button>
+          <button class="dash-tab-btn" data-tab="tab-hotels">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span>Curated Hotels</span>
+            <span class="tab-chip" id="hotels-chip-count">Top 5</span>
+          </button>
+          <button class="dash-tab-btn" data-tab="tab-itinerary">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+            <span>Day-by-Day Timeline</span>
+          </button>
+          <button class="dash-tab-btn" data-tab="tab-telemetry">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+            <span>Agent Telemetry</span>
+          </button>
+        </div>
+
+        <!-- Tab 1: Executive Dossier View -->
+        <div class="dash-panel active" id="tab-executive">
+          <div class="executive-dossier-layout">
+            <!-- Table of contents fast-navigator -->
+            <aside class="dossier-toc-sidebar">
+              <div class="toc-header">Dossier Contents</div>
+              <nav class="toc-links" id="dossier-toc-links">
+                <a href="#section-summary" class="toc-link">1. Trip Summary</a>
+                <a href="#section-flights" class="toc-link">2. Flight Information</a>
+                <a href="#section-hotels" class="toc-link">3. Hotel Suggestions</a>
+                <a href="#section-itinerary" class="toc-link">4. Day-by-Day Itinerary</a>
+                <a href="#section-budget" class="toc-link">5. Estimated Budget</a>
+                <a href="#section-recommendations" class="toc-link">6. Final Recommendations</a>
+              </nav>
+              <div class="toc-footer">
+                <span class="toc-agent-badge">Generated via ChatGroq</span>
+              </div>
+            </aside>
+
+            <!-- Main Rendered Markdown Area -->
+            <div class="dossier-content-body">
+              <div class="markdown-render-area" id="executive-markdown-output">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Flights Radar View -->
+        <div class="dash-panel" id="tab-flights" style="display: none;">
+          <div class="flights-view-wrapper">
+            <div class="flights-view-header">
+              <div>
+                <h4 class="view-section-title">Aviation Intelligence Radar</h4>
+                <p class="view-section-subtitle">Real-time flight status, departure/arrival schedules, terminals, gates, and operational telemetry from AviationStack API.</p>
+              </div>
+              <div class="radar-tag">
+                <span class="radar-blip"></span>
+                <span>AviationStack Live Feed</span>
+              </div>
+            </div>
+
+            <!-- Parsed flight cards container -->
+            <div class="flight-cards-container" id="parsed-flights-list">
+              <!-- Rendered dynamically -->
+            </div>
+
+            <div class="aviation-disclaimer-box">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <span><strong>Note on Flight Pricing:</strong> The AviationStack API provides live operational status, schedules, and gate assignments. For exact commercial fare pricing, consult booking platforms or an Amadeus enterprise integration.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Curated Hotels View -->
+        <div class="dash-panel" id="tab-hotels" style="display: none;">
+          <div class="hotels-view-wrapper">
+            <div class="hotels-view-header">
+              <div>
+                <h4 class="view-section-title">Curated Accommodations</h4>
+                <p class="view-section-subtitle">Tavily Search intelligence scraped real-time accommodations, boutique hotels, and luxury ratings tailored to your query.</p>
+              </div>
+              <div class="tavily-tag">
+                <span>Verified Web Search Results</span>
+              </div>
+            </div>
+
+            <!-- Parsed hotel cards container -->
+            <div class="hotel-cards-grid" id="parsed-hotels-grid">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Day-by-Day Itinerary Explorer View -->
+        <div class="dash-panel" id="tab-itinerary" style="display: none;">
+          <div class="itinerary-view-wrapper">
+            <div class="itinerary-view-header">
+              <div>
+                <h4 class="view-section-title">Chronological Day-by-Day Schedule</h4>
+                <p class="view-section-subtitle">Synthesized timeline crafted by the Itinerary Planning Agent, balanced for pacing, transit, and cultural immersion.</p>
+              </div>
+            </div>
+
+            <!-- Parsed itinerary cards container -->
+            <div class="itinerary-timeline" id="parsed-itinerary-timeline">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 5: Agent Telemetry & Transparency View -->
+        <div class="dash-panel" id="tab-telemetry" style="display: none;">
+          <div class="telemetry-view-wrapper">
+            <div class="telemetry-view-header">
+              <div>
+                <h4 class="view-section-title">LangGraph Agent State Telemetry</h4>
+                <p class="view-section-subtitle">Inspect the intermediate outputs and state dictionary generated across each discrete agent node in the execution graph.</p>
+              </div>
+            </div>
+
+            <div class="telemetry-grid">
+              <div class="telemetry-card">
+                <div class="telemetry-card-header">
+                  <span class="tele-title">Flight Agent Output</span>
+                  <span class="tele-badge">Node: flight_agent</span>
+                </div>
+                <pre class="telemetry-pre" id="telemetry-flight-raw">No data</pre>
+              </div>
+
+              <div class="telemetry-card">
+                <div class="telemetry-card-header">
+                  <span class="tele-title">Hotel Agent Output</span>
+                  <span class="tele-badge">Node: hotel_agent</span>
+                </div>
+                <pre class="telemetry-pre" id="telemetry-hotel-raw">No data</pre>
+              </div>
+
+              <div class="telemetry-card">
+                <div class="telemetry-card-header">
+                  <span class="tele-title">Itinerary Agent Output</span>
+                  <span class="tele-badge">Node: itinerary_agent</span>
+                </div>
+                <pre class="telemetry-pre" id="telemetry-itinerary-raw">No data</pre>
+              </div>
+
+              <div class="telemetry-card">
+                <div class="telemetry-card-header">
+                  <span class="tele-title">Session State & Checkpointer</span>
+                  <span class="tele-badge">PostgresSaver</span>
+                </div>
+                <pre class="telemetry-pre" id="telemetry-session-raw">No data</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conversational Refinement Bar (Stateful Multi-Turn Follow-Up) -->
+        <div class="refinement-dock">
+          <div class="refinement-header">
+            <div class="refine-title">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span>Refine or Expand This Itinerary</span>
+            </div>
+            <span class="refine-subtitle">Connected to active checkpoint session. Agents maintain full context.</span>
+          </div>
+
+          <div class="refine-quick-prompts">
+            <button class="refine-chip" data-prompt="Can you find budget-friendly alternative hotels closer to public transit?">
+              Find budget hotels
+            </button>
+            <button class="refine-chip" data-prompt="Add detailed authentic dining recommendations and vegetarian options for each day">
+              Add vegetarian dining
+            </button>
+            <button class="refine-chip" data-prompt="What are the essential packing items, visa considerations, and currency tips for this trip?">
+              Packing & Visa tips
+            </button>
+            <button class="refine-chip" data-prompt="Please provide a more relaxed pace with fewer activities and more free time on day 3 and 4">
+              Pacing adjustment
+            </button>
+          </div>
+
+          <div class="refine-input-row">
+            <input 
+              type="text" 
+              id="refinement-input" 
+              class="refine-input" 
+              placeholder="Ask a follow-up (e.g. 'Can you suggest romantic dinner spots on Day 2?' or 'Change departure date to next month')"
+              aria-label="Refine Trip Query"
+            >
+            <button class="btn-primary btn-refine" id="refine-submit-btn">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              <span>Update Plan</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- History Slide-over Drawer -->
+  <aside class="history-drawer" id="history-drawer" aria-hidden="true">
+    <div class="drawer-header">
+      <div class="drawer-title-wrap">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <h3 class="drawer-title">Trip History</h3>
+      </div>
+      <button class="btn-icon" id="close-history-btn" aria-label="Close History">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="drawer-body" id="history-items-container">
+      <!-- Items dynamically inserted -->
+      <div class="history-empty-state">
+        <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p>No past trips recorded yet.</p>
+        <span>Plan your first trip above and it will automatically save here.</span>
+      </div>
+    </div>
+
+    <div class="drawer-footer">
+      <button class="btn-ghost btn-sm text-danger" id="clear-all-history-btn">Clear All History</button>
+    </div>
+  </aside>
+
+  <!-- Drawer Backdrop Overlay -->
+  <div class="drawer-backdrop" id="drawer-backdrop"></div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-left">
+        <span class="footer-brand">AtlasMind Travel Intelligence</span>
+        <span class="footer-copy">Enterprise Multi-Agent Orchestration • FastAPI & LangGraph</span>
+      </div>
+      <div class="footer-right">
+        <span class="footer-status"><span class="pulse-dot"></span> Checkpointer Enabled (PostgreSQL)</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Script Application Entrypoint -->
+  <script src="/static/script.js"></script>
+</body>
+</html>
